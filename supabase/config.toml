@@ -1,0 +1,11 @@
+project_id = "skqgjpexottwobtlvdbm"
+
+[api]
+enabled = true
+port = 54321
+
+[functions.generate-timetable]
+verify_jwt = false
+
+[functions.export-timetable-pdf]
+verify_jwt = false
