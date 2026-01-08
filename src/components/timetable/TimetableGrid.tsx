@@ -72,9 +72,11 @@ export function TimetableGrid({
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className="border border-border p-2 bg-muted w-24">Time</th>
+            <th className="border-2 border-border p-3 bg-primary text-primary-foreground font-semibold w-28">
+              Period
+            </th>
             {DAYS.map((day) => (
-              <th key={day} className="border border-border p-2 bg-muted font-medium">
+              <th key={day} className="border-2 border-border p-3 bg-primary text-primary-foreground font-semibold">
                 {day}
               </th>
             ))}
@@ -84,13 +86,13 @@ export function TimetableGrid({
           {Array.from({ length: config.periodsPerDay }, (_, periodIndex) => (
             <>
               <tr key={periodIndex}>
-                <td className="border border-border p-2 text-center text-xs text-muted-foreground bg-muted/50">
-                  <div className="font-medium">P{periodIndex + 1}</div>
-                  <div>{getTimeForPeriod(periodIndex)}</div>
+                <td className="border-2 border-border p-2 text-center bg-secondary">
+                  <div className="font-semibold text-foreground">Period {periodIndex + 1}</div>
+                  <div className="text-xs text-muted-foreground">{getTimeForPeriod(periodIndex)}</div>
                 </td>
                 {DAYS.map((_, dayIndex) => {
                   const slot = slots.find((s) => s.day === dayIndex && s.period === periodIndex);
-                  if (!slot) return <td key={dayIndex} className="border border-border p-2" />;
+                  if (!slot) return <td key={dayIndex} className="border-2 border-border p-2" />;
 
                   const subject = slot.subjectId ? subjects.find((s) => s.id === slot.subjectId) : null;
                   const teacher = subject ? teachers.find((t) => t.id === subject.teacherId) : null;
@@ -100,9 +102,9 @@ export function TimetableGrid({
                     <td
                       key={dayIndex}
                       className={cn(
-                        'border border-border p-1 h-16 cursor-pointer transition-all relative',
-                        hasConflict && 'ring-2 ring-destructive',
-                        !subject && 'hover:bg-accent/50',
+                        'border-2 border-border p-1 h-20 cursor-pointer transition-all relative',
+                        hasConflict && 'ring-2 ring-destructive ring-inset',
+                        !subject && 'hover:bg-accent/50 bg-background',
                         selectedSubjectId && !subject && 'bg-accent/30'
                       )}
                       style={subject ? { backgroundColor: subject.color } : undefined}
@@ -114,12 +116,16 @@ export function TimetableGrid({
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(e, subject.id)}
-                          className="h-full flex flex-col justify-center items-center text-center"
+                          className="h-full flex flex-col justify-center items-center text-center p-1"
                         >
-                          <div className="font-medium text-foreground text-xs leading-tight">{subject.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{teacher?.name}</div>
+                          <div className="font-semibold text-foreground text-xs leading-tight mb-0.5">
+                            {subject.name}
+                          </div>
+                          <div className="text-[10px] text-foreground/70">{teacher?.name}</div>
                           {subject.isLab && (
-                            <div className="text-[10px] font-medium text-primary">LAB</div>
+                            <div className="text-[10px] font-bold text-primary bg-primary-foreground/90 px-1.5 py-0.5 rounded mt-0.5">
+                              LAB
+                            </div>
                           )}
                         </div>
                       )}
@@ -143,9 +149,9 @@ export function TimetableGrid({
                 <tr key="lunch">
                   <td
                     colSpan={6}
-                    className="border border-border p-2 text-center bg-muted/70 text-muted-foreground font-medium"
+                    className="border-2 border-border p-3 text-center bg-accent font-semibold text-accent-foreground"
                   >
-                    🍴 Lunch Break (30 min)
+                    🍽️ Lunch Break (30 minutes)
                   </td>
                 </tr>
               )}

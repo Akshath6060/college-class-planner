@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Calendar, Trash2, Eye, Loader2, LogOut } from 'lucide-react';
+import { Plus, Calendar, Trash2, Eye, Loader2, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { UniversityHeader } from '@/components/layout/UniversityHeader';
 
 interface SavedTimetable {
   id: string;
@@ -76,25 +77,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto py-4 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-semibold">Timetable Generator</h1>
-          </div>
-          <Button variant="ghost" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
-      </header>
+      <UniversityHeader onSignOut={handleSignOut} />
 
       <main className="container mx-auto py-8 px-4">
+        {/* Welcome Section */}
+        <div className="mb-8 p-6 bg-card rounded-lg border-2 border-border">
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+            Academic Schedules
+          </h2>
+          <p className="text-muted-foreground">
+            Manage your course timetables, assign faculty, and generate optimized schedules.
+          </p>
+        </div>
+
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">My Timetables</h2>
-          <Button onClick={() => navigate('/create')}>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-primary" />
+            My Timetables
+          </h3>
+          <Button onClick={() => navigate('/create')} className="shadow-sm">
             <Plus className="w-4 h-4 mr-2" />
-            Create New
+            Create New Schedule
           </Button>
         </div>
 
@@ -103,31 +106,40 @@ export default function Home() {
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : timetables.length === 0 ? (
-          <Card className="text-center py-12">
+          <Card className="text-center py-12 border-2 border-dashed">
             <CardContent>
-              <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No timetables yet</h3>
-              <p className="text-muted-foreground mb-4">Create your first timetable to get started</p>
+              <div className="inline-flex p-4 bg-muted rounded-full mb-4">
+                <Calendar className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Schedules Yet</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Create your first academic timetable to organize courses, faculty assignments, and class timings.
+              </p>
               <Button onClick={() => navigate('/create')}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Timetable
+                Create Your First Schedule
               </Button>
             </CardContent>
           </Card>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {timetables.map((timetable) => (
-              <Card key={timetable.id} className="hover:shadow-md transition-shadow">
+              <Card key={timetable.id} className="hover:shadow-lg transition-all border-2 hover:border-primary/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{timetable.name}</CardTitle>
+                  <div className="flex items-start justify-between">
+                    <div className="p-2 bg-primary/10 rounded">
+                      <Calendar className="w-4 h-4 text-primary" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">{timetable.name}</CardTitle>
                   <CardDescription>
-                    Updated {format(new Date(timetable.updated_at), 'MMM d, yyyy')}
+                    Last updated: {format(new Date(timetable.updated_at), 'MMMM d, yyyy')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
                       className="flex-1"
                       onClick={() => navigate(`/view/${timetable.id}`)}
@@ -154,6 +166,11 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="mt-auto py-6 text-center text-muted-foreground text-sm border-t">
+        <p>© 2025 University Timetable System. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

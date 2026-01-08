@@ -14,6 +14,7 @@ import { SubjectPalette } from '@/components/timetable/SubjectPalette';
 import { useTimetable } from '@/hooks/useTimetable';
 import { toast } from 'sonner';
 import { DAYS } from '@/types/timetable';
+import { UniversityHeader } from '@/components/layout/UniversityHeader';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,7 @@ import {
 import { Label } from '@/components/ui/label';
 
 export default function CreateTimetable() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const {
     teachers,
@@ -63,9 +64,14 @@ export default function CreateTimetable() {
     initializeSlots();
   }, [initializeSlots]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
   const handleGenerate = async () => {
     if (subjects.length === 0) {
-      toast.error('Please add at least one subject');
+      toast.error('Please add at least one course');
       return;
     }
 
@@ -79,10 +85,10 @@ export default function CreateTimetable() {
 
       if (data?.slots) {
         setTimetable(data.slots);
-        toast.success('Timetable generated successfully!');
+        toast.success('Schedule generated successfully!');
       }
     } catch (error) {
-      toast.error('Failed to generate timetable. Please try again.');
+      toast.error('Failed to generate schedule. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -90,7 +96,7 @@ export default function CreateTimetable() {
 
   const handleExportPDF = async () => {
     if (slots.every((s) => !s.subjectId)) {
-      toast.error('Please generate or create a timetable first');
+      toast.error('Please generate or create a schedule first');
       return;
     }
 
@@ -130,7 +136,7 @@ export default function CreateTimetable() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'timetable.pdf';
+        a.download = 'academic-schedule.pdf';
         a.click();
         URL.revokeObjectURL(url);
         toast.success('PDF exported successfully!');
@@ -144,12 +150,12 @@ export default function CreateTimetable() {
 
   const handleSave = async () => {
     if (!timetableName.trim()) {
-      toast.error('Please enter a name for your timetable');
+      toast.error('Please enter a name for your schedule');
       return;
     }
 
     if (slots.every((s) => !s.subjectId)) {
-      toast.error('Please generate or create a timetable first');
+      toast.error('Please generate or create a schedule first');
       return;
     }
 
@@ -165,9 +171,9 @@ export default function CreateTimetable() {
     setIsSaving(false);
 
     if (error) {
-      toast.error('Failed to save timetable');
+      toast.error('Failed to save schedule');
     } else {
-      toast.success('Timetable saved!');
+      toast.success('Schedule saved!');
       setSaveDialogOpen(false);
       navigate('/');
     }
@@ -175,7 +181,7 @@ export default function CreateTimetable() {
 
   const handleReset = () => {
     initializeSlots();
-    toast.info('Timetable cleared');
+    toast.info('Schedule cleared');
   };
 
   if (authLoading) {
@@ -188,31 +194,39 @@ export default function CreateTimetable() {
 
   return (
     <div className="min-h-screen bg-background">
+      <UniversityHeader onSignOut={handleSignOut} />
+
       <div className="container mx-auto py-6 px-4">
-        <header className="mb-8 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+        <div className="mb-6 flex items-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create Timetable</h1>
-            <p className="text-muted-foreground mt-1">
-              Add teachers and subjects, then generate or manually create your schedule
+            <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+              Create Academic Schedule
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Add faculty and courses, then generate or manually arrange your timetable
             </p>
           </div>
-        </header>
+        </div>
 
-        <div className="grid lg:grid-cols-[350px_1fr] gap-6">
+        <div className="grid lg:grid-cols-[380px_1fr] gap-6">
           <aside className="space-y-4">
-            <TeacherForm teachers={teachers} onAddTeacher={addTeacher} onRemoveTeacher={removeTeacher} />
-            <SubjectForm
-              teachers={teachers}
-              onAddSubject={addSubject}
-              subjects={subjects}
-              onRemoveSubject={removeSubject}
-            />
-            <ConfigForm config={config} onConfigChange={setConfig} />
+            <div className="bg-card rounded-lg border-2 p-4 space-y-4">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Setup</h3>
+              <TeacherForm teachers={teachers} onAddTeacher={addTeacher} onRemoveTeacher={removeTeacher} />
+              <SubjectForm
+                teachers={teachers}
+                onAddSubject={addSubject}
+                subjects={subjects}
+                onRemoveSubject={removeSubject}
+              />
+              <ConfigForm config={config} onConfigChange={setConfig} />
+            </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="bg-card rounded-lg border-2 p-4 space-y-3">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Actions</h3>
               <Button onClick={handleGenerate} disabled={isGenerating || subjects.length === 0} className="w-full">
                 {isGenerating ? (
                   <>
@@ -222,18 +236,18 @@ export default function CreateTimetable() {
                 ) : (
                   <>
                     <Wand2 className="w-4 h-4 mr-2" />
-                    Auto-Generate Timetable
+                    Auto-Generate Schedule
                   </>
                 )}
               </Button>
               <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={handleReset}>
+                <Button variant="outline" onClick={handleReset} title="Reset">
                   <RotateCcw className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" onClick={handleExportPDF} disabled={isExporting}>
+                <Button variant="outline" onClick={handleExportPDF} disabled={isExporting} title="Export PDF">
                   {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 </Button>
-                <Button onClick={() => setSaveDialogOpen(true)} disabled={slots.every((s) => !s.subjectId)}>
+                <Button onClick={() => setSaveDialogOpen(true)} disabled={slots.every((s) => !s.subjectId)} title="Save">
                   <Save className="w-4 h-4" />
                 </Button>
               </div>
@@ -242,19 +256,24 @@ export default function CreateTimetable() {
 
           <main className="space-y-4">
             {subjects.length > 0 && (
-              <SubjectPalette
-                subjects={subjects}
-                teachers={teachers}
-                selectedSubjectId={selectedSubjectId}
-                onSelectSubject={setSelectedSubjectId}
-                subjectHours={subjectHours}
-              />
+              <div className="bg-card rounded-lg border-2 p-4">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                  Course Palette
+                </h3>
+                <SubjectPalette
+                  subjects={subjects}
+                  teachers={teachers}
+                  selectedSubjectId={selectedSubjectId}
+                  onSelectSubject={setSelectedSubjectId}
+                  subjectHours={subjectHours}
+                />
+              </div>
             )}
 
             {conflicts.length > 0 && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm">
-                <div className="font-medium text-destructive mb-1">⚠️ Conflicts Detected</div>
-                <ul className="space-y-1 text-destructive/80">
+              <div className="bg-destructive/10 border-2 border-destructive/30 rounded-lg p-4">
+                <div className="font-semibold text-destructive mb-2">⚠️ Scheduling Conflicts</div>
+                <ul className="space-y-1 text-sm text-destructive/80">
                   {conflicts.map((conflict, i) => (
                     <li key={i}>{conflict.message}</li>
                   ))}
@@ -262,16 +281,21 @@ export default function CreateTimetable() {
               </div>
             )}
 
-            <TimetableGrid
-              slots={slots}
-              subjects={subjects}
-              teachers={teachers}
-              config={config}
-              conflicts={conflicts}
-              onSlotClick={handleSlotClick}
-              onSlotDrop={updateSlot}
-              selectedSubjectId={selectedSubjectId}
-            />
+            <div className="bg-card rounded-lg border-2 p-4">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
+                Weekly Schedule
+              </h3>
+              <TimetableGrid
+                slots={slots}
+                subjects={subjects}
+                teachers={teachers}
+                config={config}
+                conflicts={conflicts}
+                onSlotClick={handleSlotClick}
+                onSlotDrop={updateSlot}
+                selectedSubjectId={selectedSubjectId}
+              />
+            </div>
           </main>
         </div>
       </div>
@@ -279,14 +303,14 @@ export default function CreateTimetable() {
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save Timetable</DialogTitle>
-            <DialogDescription>Give your timetable a name to save it for later.</DialogDescription>
+            <DialogTitle>Save Academic Schedule</DialogTitle>
+            <DialogDescription>Enter a name for this schedule to save it to your account.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="timetable-name">Name</Label>
+            <Label htmlFor="timetable-name">Schedule Name</Label>
             <Input
               id="timetable-name"
-              placeholder="e.g., Spring 2025 Schedule"
+              placeholder="e.g., Computer Science - Spring 2025"
               value={timetableName}
               onChange={(e) => setTimetableName(e.target.value)}
               className="mt-2"
@@ -303,7 +327,7 @@ export default function CreateTimetable() {
                   Saving...
                 </>
               ) : (
-                'Save'
+                'Save Schedule'
               )}
             </Button>
           </DialogFooter>

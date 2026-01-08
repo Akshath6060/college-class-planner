@@ -7,11 +7,11 @@ import { TimetableGrid } from '@/components/timetable/TimetableGrid';
 import { ArrowLeft, FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Teacher, Subject, TimetableSlot, TimetableConfig, DAYS } from '@/types/timetable';
-import { Json } from '@/integrations/supabase/types';
+import { UniversityHeader } from '@/components/layout/UniversityHeader';
 
 export default function ViewTimetable() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -43,7 +43,7 @@ export default function ViewTimetable() {
       .single();
 
     if (error) {
-      toast.error('Failed to load timetable');
+      toast.error('Failed to load schedule');
       navigate('/');
     } else if (data) {
       setTimetable({
@@ -55,6 +55,11 @@ export default function ViewTimetable() {
       });
     }
     setIsLoading(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   const handleExportPDF = async () => {
@@ -122,15 +127,22 @@ export default function ViewTimetable() {
 
   return (
     <div className="min-h-screen bg-background">
+      <UniversityHeader onSignOut={handleSignOut} />
+
       <div className="container mx-auto py-6 px-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <Button variant="outline" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold">{timetable.name}</h1>
+            <div>
+              <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
+                {timetable.name}
+              </h1>
+              <p className="text-muted-foreground text-sm">Academic Schedule</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleExportPDF} disabled={isExporting}>
+          <Button onClick={handleExportPDF} disabled={isExporting}>
             {isExporting ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
@@ -140,16 +152,18 @@ export default function ViewTimetable() {
           </Button>
         </div>
 
-        <TimetableGrid
-          slots={timetable.slots}
-          subjects={timetable.subjects}
-          teachers={timetable.teachers}
-          config={timetable.config}
-          conflicts={[]}
-          onSlotClick={() => {}}
-          onSlotDrop={() => {}}
-          selectedSubjectId={null}
-        />
+        <div className="bg-card rounded-lg border-2 p-4">
+          <TimetableGrid
+            slots={timetable.slots}
+            subjects={timetable.subjects}
+            teachers={timetable.teachers}
+            config={timetable.config}
+            conflicts={[]}
+            onSlotClick={() => {}}
+            onSlotDrop={() => {}}
+            selectedSubjectId={null}
+          />
+        </div>
       </div>
     </div>
   );
